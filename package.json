@@ -1,0 +1,127 @@
+{
+  "name": "capivaradev",
+  "displayName": "CapivaraDev",
+  "description": "For start many services required ",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.93.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onView:capivaraTreeViewActBar"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "capivaraTreeView",
+          "title": "Capivara Run",
+          "icon": "media/icon_idea.png"
+        }
+      ]
+    },
+    "views": {
+      "capivaraTreeView": [
+        {
+          "id": "capivaraTreeView",
+          "name": "Services"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "extension.startService",
+        "title": "Start Service",
+        "icon": {
+          "light": "media/start.png",
+          "dark": "media/start_white.png"
+        }
+      },
+      {
+        "command": "extension.stopService",
+        "title": "Stop Service",
+        "icon": {
+          "light": "media/stop.png",
+          "dark": "media/stop_white.png"
+        }
+      },
+      {
+        "command": "extension.startAllServices",
+        "title": "StartAll",
+        "icon": {
+          "light": "media/start.png",
+          "dark": "media/start_white.png"
+        }
+      },
+      {
+        "command": "extension.stopAllServices",
+        "title": "StopAll",
+        "icon": {
+          "light": "media/stop.png",
+          "dark": "media/stop_white.png"
+        }
+      },
+      {
+        "command": "extension.settings",
+        "title": "Settings",
+        "icon": {
+          "light": "media/settings.png",
+          "dark": "media/settings_white.png"
+        }
+      }
+    ],
+    "menus": {
+      "view/item/context": [
+        {
+          "command": "extension.startService",
+          "when": "viewItem == serviceItem",
+          "group": "inline"
+        },
+        {
+          "command": "extension.stopService",
+          "when": "viewItem == serviceItem",
+          "group": "inline"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "extension.startAllServices",
+          "when": "view == capivaraTreeView",
+          "group": "navigation"
+        },
+        {
+          "command": "extension.stopAllServices",
+          "when": "view == capivaraTreeView",
+          "group": "navigation"
+        },
+        {
+          "command": "extension.settings",
+          "when": "view == capivaraTreeView",
+          "group": "navigation"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.93.0",
+    "@types/mocha": "^10.0.7",
+    "@types/node": "20.x",
+    "@typescript-eslint/eslint-plugin": "^8.3.0",
+    "@typescript-eslint/parser": "^8.3.0",
+    "eslint": "^9.9.1",
+    "typescript": "^5.5.4",
+    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.4.1"
+  }
+}
