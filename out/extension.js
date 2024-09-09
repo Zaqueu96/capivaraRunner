@@ -46,7 +46,7 @@ function loadConfiguration() {
         services = JSON.parse(configFile).services;
     }
     else {
-        vscode.window.showErrorMessage('Config file not found');
+        vscode.window.showErrorMessage('Config file (capivara.config.json) not found');
     }
     const treeDataProvider = new ServiceTreeDataProvider(services);
     vscode.window.registerTreeDataProvider('capivaraTreeView', treeDataProvider);
@@ -92,17 +92,16 @@ class ServiceItem extends vscode.TreeItem {
         this.service = service;
         this.iconPath = new vscode.ThemeIcon(isRunning ? 'debug-stop' : 'play');
         this.command = {
+            title: `${isRunning ? "Stop" : "Start"} Service`,
+            arguments: [this.service],
             command: isRunning ? `extension.stopService` : `extension.startService`,
-            title: "Start Service",
-            arguments: [this.service]
         };
         this.contextValue = 'serviceItem';
         this.description = `${this.service.command}`;
-        this.tooltip = `WorkDir: ${this.service.workingDirectory}`;
+        this.tooltip = `${isRunning ? "Stop" : "Start"} Service`;
     }
 }
 vscode.commands.registerCommand('extension.startService', (service) => {
-    //const service: ServiceConfig = (event?.service) as ServiceConfig;
     if (runningProcesses.has(service.name)) {
         vscode.window.showWarningMessage(`${service.name} is running`);
         return;
@@ -112,7 +111,6 @@ vscode.commands.registerCommand('extension.startService', (service) => {
     loadConfiguration();
 });
 vscode.commands.registerCommand('extension.stopService', (service) => {
-    //const service: ServiceConfig = (event?.service) as ServiceConfig;
     vscode.window.showInformationMessage(`Stopping service: ${service.name}`);
     stopServiceAndKillProcess(service);
     loadConfiguration();
