@@ -27,13 +27,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.activate = activate;
+exports.deactivate = deactivate;
 const vscode = __importStar(require("vscode"));
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 const child_process_1 = require("child_process");
 const terminate_1 = __importDefault(require("terminate"));
 let services = [];
-const outputChannel = vscode.window.createOutputChannel('Service Output');
+const outputChannel = vscode.window.createOutputChannel('CapivaraRunner Output');
 const runningProcesses = new Map();
 function activate(context) {
     loadConfiguration();
@@ -79,52 +80,54 @@ class ServiceTreeDataProvider {
     }
     getChildren(element) {
         if (!element) {
-            return Promise.resolve(this.services.map(service => new ServiceItem(service)));
+            return Promise.resolve(this.services.map(service => new ServiceItem(service, runningProcesses.has(service.name))));
         }
         return Promise.resolve([]);
     }
 }
 class ServiceItem extends vscode.TreeItem {
     service;
-    constructor(service) {
+    constructor(service, isRunning) {
         super(service.name, vscode.TreeItemCollapsibleState.None);
         this.service = service;
-        this.iconPath = new vscode.ThemeIcon('play-circle');
+        this.iconPath = new vscode.ThemeIcon(isRunning ? 'debug-stop' : 'play');
         this.command = {
-            command: `extension.startService`,
+            command: isRunning ? `extension.stopService` : `extension.startService`,
             title: "Start Service",
             arguments: [this.service]
         };
         this.contextValue = 'serviceItem';
-        this.description = `Cmd: ${this.service.command}`;
+        this.description = `${this.service.command}`;
         this.tooltip = `WorkDir: ${this.service.workingDirectory}`;
     }
 }
-vscode.commands.registerCommand('extension.startService', (event) => {
-    const service = (event?.service);
+vscode.commands.registerCommand('extension.startService', (service) => {
+    //const service: ServiceConfig = (event?.service) as ServiceConfig;
+    if (runningProcesses.has(service.name)) {
+        vscode.window.showWarningMessage(`${service.name} is running`);
+        return;
+    }
     vscode.window.showInformationMessage(`Starting service: ${service.name}`);
-    // executeCommandOnTerminals(service);
-    executeCommandOnOutputChannel(service);
+    capivaraRunnerCommand(service);
+    loadConfiguration();
 });
-vscode.commands.registerCommand('extension.stopService', (event) => {
-    const service = (event?.service);
+vscode.commands.registerCommand('extension.stopService', (service) => {
+    //const service: ServiceConfig = (event?.service) as ServiceConfig;
     vscode.window.showInformationMessage(`Stopping service: ${service.name}`);
     stopServiceAndKillProcess(service);
+    loadConfiguration();
 });
 vscode.commands.registerCommand('extension.startAllServices', () => {
     vscode.window.showInformationMessage('Starting all services...');
     services.forEach(service => {
-        //executeCommandOnTerminals(service);
-        executeCommandOnOutputChannel(service);
+        capivaraRunnerCommand(service);
     });
+    loadConfiguration();
 });
 vscode.commands.registerCommand('extension.stopAllServices', () => {
     vscode.window.showInformationMessage('Stopping all services...');
-    runningProcesses.forEach((process, name) => {
-        const service = services.find(v => v.name == name);
-        if (service)
-            stopServiceAndKillProcess(service);
-    });
+    stoppingServices();
+    loadConfiguration();
 });
 vscode.commands.registerCommand('extension.refresh', () => {
     try {
@@ -137,13 +140,28 @@ vscode.commands.registerCommand('extension.refresh', () => {
         vscode.window.showErrorMessage("Error on load capivara.config.json");
     }
 });
+function capivaraRunnerCommand(service) {
+    const runner = true ? executeCommandOnTerminals :
+        executeCommandOnOutputChannel;
+    runner(service);
+}
+function stoppingServices() {
+    runningProcesses.forEach((process, name) => {
+        const service = services.find(v => v.name == name);
+        if (service)
+            stopServiceAndKillProcess(service);
+    });
+}
 function stopServiceAndKillProcess(service) {
     const process = runningProcesses.get(service.name);
     try {
-        if (process && process.pid) {
-            (0, terminate_1.default)(process.pid, () => {
-                outputChannel.appendLine(`[${service.name}] Terminate process with success`);
-            });
+        if (process) {
+            if (process.pid)
+                (0, terminate_1.default)(process.pid, () => {
+                    outputChannel.appendLine(`[${service.name}] Terminate process with success`);
+                });
+            else
+                process.dispose();
             runningProcesses.delete(service.name);
         }
         else {
@@ -157,9 +175,19 @@ function stopServiceAndKillProcess(service) {
     }
 }
 function executeCommandOnTerminals(service) {
-    const terminal = vscode.window.createTerminal(service.name);
-    terminal.sendText(`cd ${service.workingDirectory}`);
+    const workingDirectory = path.resolve(vscode.workspace.rootPath || '', service.workingDirectory);
+    const terminal = vscode.window.createTerminal({
+        cwd: workingDirectory,
+        name: service.name,
+    });
+    runningProcesses.set(service.name, terminal);
+    //terminal.sendText(`cd ${service.workingDirectory}`);
     terminal.sendText(service.command);
-    terminal.show();
+    terminal.hide();
 }
+function deactivate() {
+    outputChannel.appendLine(`[CapivaraRunner] closed`);
+    stoppingServices();
+}
+;
 //# sourceMappingURL=extension.js.map

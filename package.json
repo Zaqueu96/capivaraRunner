@@ -33,22 +33,6 @@
     },
     "commands": [
       {
-        "command": "extension.startService",
-        "title": "Start Service",
-        "icon": {
-          "light": "media/start.png",
-          "dark": "media/start_white.png"
-        }
-      },
-      {
-        "command": "extension.stopService",
-        "title": "Stop Service",
-        "icon": {
-          "light": "media/stop.png",
-          "dark": "media/stop_white.png"
-        }
-      },
-      {
         "command": "extension.startAllServices",
         "title": "StartAll",
         "icon": {
@@ -82,18 +66,6 @@
       }
     ],
     "menus": {
-      "view/item/context": [
-        {
-          "command": "extension.startService",
-          "when": "viewItem == serviceItem",
-          "group": "inline"
-        },
-        {
-          "command": "extension.stopService",
-          "when": "viewItem == serviceItem",
-          "group": "inline"
-        }
-      ],
       "view/title": [
         {
           "command": "extension.startAllServices",
