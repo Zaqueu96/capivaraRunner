@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="./assets/capivara_runner_logo.png" alt="CapivaraRunner Logo" />
+</p>
+
 # CapivaraRunner - VS Code Extension
 
 **CapivaraRunner** is a Visual Studio Code extension that allows you to manage and run services defined in a `capivara.config.json` file. With it, you can start and stop services, as well as manage dependencies between them.
@@ -7,6 +11,14 @@
 - **Start and Stop Services**: Run or stop services directly from Visual Studio Code.
 - **Dependency Management**: The extension ensures that services are started and stopped in the correct order, respecting defined dependencies.
 - **Auto-Reload Configuration**: Easily reload the configuration whenever the configuration file changes.
+
+## Preview
+
+Here’s a preview of the **CapivaraRunner** extension in action:
+
+<p align="center">
+  <img src="./assets/capivara-extension-screenshot.png" alt="CapivaraRunner Extension Screenshot" />
+</p>
 
 ## Installation
 

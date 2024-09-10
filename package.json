@@ -18,8 +18,8 @@
       "activitybar": [
         {
           "id": "capivaraTreeView",
-          "title": "Capivara Run",
-          "icon": "media/icon_idea.png"
+          "title": "Capivara Runner",
+          "icon": "media/capivara_white.svg"
         }
       ]
     },
