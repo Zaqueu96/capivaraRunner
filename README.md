@@ -1,6 +1,5 @@
-# capivaradev README
-
-This is the README for your extension "capivaradev". After writing up a brief description, we recommend including the following sections.
+# CapivaraRunner 
+Extension for run multiple command on terminal to start applications.
 
 ## Features
 

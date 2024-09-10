@@ -14,12 +14,14 @@ let services: ServiceConfig[] = [];
 const outputChannel = vscode.window.createOutputChannel('CapivaraRunner Output');
 const runningProcesses = new Map<string, any>();
 
+const capivaraLogger = (message:string) => outputChannel.appendLine(`[CapivaraRunner] ${message}`);
 
 export function activate(context: vscode.ExtensionContext) {
 	loadConfiguration();
 }
 
 function loadConfiguration() {
+	capivaraLogger("Loading configuration.")
 	const configPath = path.join(vscode.workspace.rootPath || '', 'capivara.config.json');
 	if (fs.existsSync(configPath)) {
 		const configFile = fs.readFileSync(configPath, 'utf-8');
@@ -88,19 +90,20 @@ class ServiceItem extends vscode.TreeItem {
 		this.iconPath = new vscode.ThemeIcon(isRunning ? 'debug-stop' : 'play');
 
 		this.command = {
-			title: `${isRunning ? "Stop": "Start"} Service`,
+			title: `${isRunning ? "Stop" : "Start"} Service`,
 			arguments: [this.service],
 			command: isRunning ? `extension.stopService` : `extension.startService`,
 		};
 
 		this.contextValue = 'serviceItem';
 		this.description = `${this.service.command}`;
-		this.tooltip =  `${isRunning ? "Stop": "Start"} Service`;
+		this.tooltip = `${isRunning ? "Stop" : "Start"} Service`;
 	}
 }
 
 vscode.commands.registerCommand('extension.startService', (service: ServiceConfig) => {
 	if (runningProcesses.has(service.name)) {
+		capivaraLogger(`service ${service.name} already running.`)
 		vscode.window.showWarningMessage(`${service.name} is running`);
 		return;
 	}
@@ -116,9 +119,10 @@ vscode.commands.registerCommand('extension.stopService', (service: ServiceConfig
 });
 
 vscode.commands.registerCommand('extension.startAllServices', () => {
+	capivaraLogger("Starting all services...");
 	vscode.window.showInformationMessage('Starting all services...');
-	services.forEach(service => {
-		capivaraRunnerCommand(service);
+	getServicesByDependsOn(services).forEach(service => {
+			capivaraRunnerCommand(service);
 	});
 	loadConfiguration()
 });
@@ -134,20 +138,25 @@ vscode.commands.registerCommand('extension.refresh', () => {
 		loadConfiguration();
 		vscode.window.showInformationMessage('Reloaded configuration!');
 	} catch (err) {
-		outputChannel.appendLine("[CapivaraRunner] Error on load capivara.config.json");
-		outputChannel.appendLine("[CapivaraRunner] " + err);
+		capivaraLogger("Error on load capivara.config.json");
+		capivaraLogger(err as any);
 		vscode.window.showErrorMessage("Error on load capivara.config.json");
 	}
 
 });
 
 function capivaraRunnerCommand(service: ServiceConfig) {
+	capivaraLogger(`starting service: ${service.name}`)
+	if(runningProcesses.has(service.name)){
+		return;
+	}
 	const runner = true ? executeCommandOnTerminals :
 		executeCommandOnOutputChannel;
 	runner(service);
 }
 
 function stoppingServices() {
+	capivaraLogger('Closing all services')
 	runningProcesses.forEach((process, name) => {
 		const service = services.find(v => v.name == name);
 		if (service) stopServiceAndKillProcess(service);
@@ -155,6 +164,7 @@ function stoppingServices() {
 }
 
 function stopServiceAndKillProcess(service: ServiceConfig) {
+	capivaraLogger(`Terminate process for service ${service.name}`)
 	const process = runningProcesses.get(service.name);
 	try {
 		if (process) {
@@ -172,8 +182,8 @@ function stopServiceAndKillProcess(service: ServiceConfig) {
 		}
 	} catch (error) {
 		vscode.window.showErrorMessage(`${service.name}] error on stop service`);
-		outputChannel.appendLine(`[${service.name}] Error  on terminate `);
-		outputChannel.appendLine(`[${service.name}] ${error}`);
+		capivaraLogger(`[${service.name}] Error  on terminate `);
+		capivaraLogger(`[${service.name}] ${error}`);
 	}
 }
 
@@ -182,16 +192,36 @@ function executeCommandOnTerminals(service: ServiceConfig) {
 
 	const terminal = vscode.window.createTerminal({
 		cwd: workingDirectory,
-		name: service.name,		
+		name: service.name,
 	});
 	runningProcesses.set(service.name, terminal);
-	//terminal.sendText(`cd ${service.workingDirectory}`);
 	terminal.sendText(service.command);
 	terminal.hide();
 }
 
 
 export function deactivate() {
-	outputChannel.appendLine(`[CapivaraRunner] closed`);
+	capivaraLogger('closed');
 	stoppingServices();
 };
+
+function getServicesByDependsOn(services:ServiceConfig[]) {
+	const orderedServices:ServiceConfig[] = [];
+	const visited = new Set();
+  
+	function visit(service:ServiceConfig) {
+	  if (visited.has(service.name)) return;
+	  visited.add(service.name);
+	  service.dependsOn.forEach((dependency:string) => {
+		const dependentService = services.find((s:ServiceConfig) => s.name === dependency);
+		if (dependentService) {
+		  visit(dependentService);
+		}
+	  });
+	  orderedServices.push(service);
+	}
+
+	services.forEach(service => visit(service));
+  
+	return orderedServices;
+  }

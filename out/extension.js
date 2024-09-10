@@ -36,10 +36,12 @@ const terminate_1 = __importDefault(require("terminate"));
 let services = [];
 const outputChannel = vscode.window.createOutputChannel('CapivaraRunner Output');
 const runningProcesses = new Map();
+const capivaraLogger = (message) => outputChannel.appendLine(`[CapivaraRunner] ${message}`);
 function activate(context) {
     loadConfiguration();
 }
 function loadConfiguration() {
+    capivaraLogger("Loading configuration.");
     const configPath = path.join(vscode.workspace.rootPath || '', 'capivara.config.json');
     if (fs.existsSync(configPath)) {
         const configFile = fs.readFileSync(configPath, 'utf-8');
@@ -103,6 +105,7 @@ class ServiceItem extends vscode.TreeItem {
 }
 vscode.commands.registerCommand('extension.startService', (service) => {
     if (runningProcesses.has(service.name)) {
+        capivaraLogger(`service ${service.name} already running.`);
         vscode.window.showWarningMessage(`${service.name} is running`);
         return;
     }
@@ -116,8 +119,9 @@ vscode.commands.registerCommand('extension.stopService', (service) => {
     loadConfiguration();
 });
 vscode.commands.registerCommand('extension.startAllServices', () => {
+    capivaraLogger("Starting all services...");
     vscode.window.showInformationMessage('Starting all services...');
-    services.forEach(service => {
+    getServicesByDependsOn(services).forEach(service => {
         capivaraRunnerCommand(service);
     });
     loadConfiguration();
@@ -133,17 +137,22 @@ vscode.commands.registerCommand('extension.refresh', () => {
         vscode.window.showInformationMessage('Reloaded configuration!');
     }
     catch (err) {
-        outputChannel.appendLine("[CapivaraRunner] Error on load capivara.config.json");
-        outputChannel.appendLine("[CapivaraRunner] " + err);
+        capivaraLogger("Error on load capivara.config.json");
+        capivaraLogger(err);
         vscode.window.showErrorMessage("Error on load capivara.config.json");
     }
 });
 function capivaraRunnerCommand(service) {
+    capivaraLogger(`starting service: ${service.name}`);
+    if (runningProcesses.has(service.name)) {
+        return;
+    }
     const runner = true ? executeCommandOnTerminals :
         executeCommandOnOutputChannel;
     runner(service);
 }
 function stoppingServices() {
+    capivaraLogger('Closing all services');
     runningProcesses.forEach((process, name) => {
         const service = services.find(v => v.name == name);
         if (service)
@@ -151,6 +160,7 @@ function stoppingServices() {
     });
 }
 function stopServiceAndKillProcess(service) {
+    capivaraLogger(`Terminate process for service ${service.name}`);
     const process = runningProcesses.get(service.name);
     try {
         if (process) {
@@ -168,8 +178,8 @@ function stopServiceAndKillProcess(service) {
     }
     catch (error) {
         vscode.window.showErrorMessage(`${service.name}] error on stop service`);
-        outputChannel.appendLine(`[${service.name}] Error  on terminate `);
-        outputChannel.appendLine(`[${service.name}] ${error}`);
+        capivaraLogger(`[${service.name}] Error  on terminate `);
+        capivaraLogger(`[${service.name}] ${error}`);
     }
 }
 function executeCommandOnTerminals(service) {
@@ -179,13 +189,30 @@ function executeCommandOnTerminals(service) {
         name: service.name,
     });
     runningProcesses.set(service.name, terminal);
-    //terminal.sendText(`cd ${service.workingDirectory}`);
     terminal.sendText(service.command);
     terminal.hide();
 }
 function deactivate() {
-    outputChannel.appendLine(`[CapivaraRunner] closed`);
+    capivaraLogger('closed');
     stoppingServices();
 }
 ;
+function getServicesByDependsOn(services) {
+    const orderedServices = [];
+    const visited = new Set();
+    function visit(service) {
+        if (visited.has(service.name))
+            return;
+        visited.add(service.name);
+        service.dependsOn.forEach((dependency) => {
+            const dependentService = services.find((s) => s.name === dependency);
+            if (dependentService) {
+                visit(dependentService);
+            }
+        });
+        orderedServices.push(service);
+    }
+    services.forEach(service => visit(service));
+    return orderedServices;
+}
 //# sourceMappingURL=extension.js.map
