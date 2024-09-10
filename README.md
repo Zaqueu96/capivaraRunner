@@ -17,6 +17,7 @@
     ```
 
 2. Add a `capivara.config.json` configuration file in the root of your project.
+3. An example project with a configuration file is available in the `./example` folder of this repository.
 
 ## Configuration File (`capivara.config.json`)
 

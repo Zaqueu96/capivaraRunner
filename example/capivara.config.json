@@ -1,0 +1,27 @@
+{
+    "services": [
+      {
+        "name": "System01",
+        "workingDirectory": "./system01",
+        "command": "npm run start",
+        "dependsOn": []
+      },
+      {
+        "name": "System02",
+        "workingDirectory": "./system02",
+        "command": "npm run start",
+        "dependsOn": [
+          "integration-users"
+        ]
+      },
+      {
+        "name": "integration-users",
+        "workingDirectory": "./",
+        "command": "docker-compose up",
+        "dependsOn": []
+      }
+     
+     
+    ]
+  }
+  
