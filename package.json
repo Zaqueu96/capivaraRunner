@@ -1,6 +1,6 @@
 {
-  "name": "capivaradev",
-  "displayName": "CapivaraDev",
+  "name": "capivararunner",
+  "displayName": "CapivaraRunner",
   "description": "For start many services required ",
   "version": "0.0.1",
   "engines": {

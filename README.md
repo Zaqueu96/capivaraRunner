@@ -1,70 +1,86 @@
-# CapivaraRunner 
-Extension for run multiple command on terminal to start applications.
+# CapivaraRunner - VS Code Extension
+
+**CapivaraRunner** is a Visual Studio Code extension that allows you to manage and run services defined in a `capivara.config.json` file. With it, you can start and stop services, as well as manage dependencies between them.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+- **Start and Stop Services**: Run or stop services directly from Visual Studio Code.
+- **Dependency Management**: The extension ensures that services are started and stopped in the correct order, respecting defined dependencies.
+- **Auto-Reload Configuration**: Easily reload the configuration whenever the configuration file changes.
 
-For example if there is an image subfolder under your extension project workspace:
+## Installation
 
-\!\[feature X\]\(images/feature-x.png\)
+1. Install the extension directly in VS Code or clone the repository and run the following commands:
+    ```bash
+    npm install
+    npm run build
+    ```
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+2. Add a `capivara.config.json` configuration file in the root of your project.
 
-## Requirements
+## Configuration File (`capivara.config.json`)
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+The configuration file should follow this format:
 
-## Extension Settings
+```json
+{
+  "services": [
+    {
+      "name": "System01",
+      "workingDirectory": "./system01",
+      "command": "npm run start",
+      "dependsOn": []
+    },
+    {
+      "name": "System02",
+      "workingDirectory": "./system02",
+      "command": "npm run start",
+      "dependsOn": ["integration-users"]
+    },
+    {
+      "name": "integration-users",
+      "workingDirectory": "./",
+      "command": "docker-compose up",
+      "dependsOn": []
+    }
+  ]
+}
+```
+- `name`: The name of the service.
+- `workingDirectory`: The directory where the command will be executed.
+- `command`: The command to run the service.
+- `dependsOn`: A list of services this service depends on.
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+## Usage
+### Available Commands
+- **Start Service**: Starts an individual service.
+- **Stop Service**: Stops a running service.
+- **Start All Services**: Starts all services while respecting their dependencies.
+- **Stop All Services**: Stops all running services.
+- **Refresh**: Reloads the configuration from the `capivara.config.json` file.
 
-For example:
+### Managing Services
 
-This extension contributes the following settings:
+Once the extension is activated, you’ll see a tree view in the Activity Bar where you can start or stop services by clicking the "play" or "stop" icon next to each service.
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+### Terminal Execution
 
-## Known Issues
+Commands can be executed in independent terminals or in a dedicated output channel called **CapivaraRunner Output**.
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+## Shortcuts
 
-## Release Notes
+- **CapivaraRunner: Refresh Configuration**: Reloads the configuration. Shortcut: `Ctrl+Shift+P` and select `CapivaraRunner: Refresh`.
 
-Users appreciate release notes as you update your extension.
+## Deactivation
 
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
+When VS Code is closed or the extension is deactivated, all running services are automatically stopped.
 
 ---
 
-## Following extension guidelines
+## Contribution
 
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
+Feel free to contribute to the extension. Fork the project, add your improvements, and open a pull request!
 
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
+## License
 
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+This project is licensed under the MIT License.
