@@ -49,14 +49,6 @@
         }
       },
       {
-        "command": "extension.settings",
-        "title": "Settings",
-        "icon": {
-          "light": "media/settings.png",
-          "dark": "media/settings_white.png"
-        }
-      },
-      {
         "command": "extension.refresh",
         "title": "Refresh",
         "icon": {
@@ -74,11 +66,6 @@
         },
         {
           "command": "extension.stopAllServices",
-          "when": "view == capivaraTreeView",
-          "group": "navigation"
-        },
-        {
-          "command": "extension.settings",
           "when": "view == capivaraTreeView",
           "group": "navigation"
         },
@@ -101,6 +88,7 @@
   "devDependencies": {
     "@types/mocha": "^10.0.7",
     "@types/node": "20.x",
+    "@types/sinon": "^17.0.3",
     "@types/vscode": "^1.93.0",
     "@typescript-eslint/eslint-plugin": "^8.3.0",
     "@typescript-eslint/parser": "^8.3.0",
@@ -110,6 +98,8 @@
     "typescript": "^5.5.4"
   },
   "dependencies": {
+    "jest": "^29.7.0",
+    "sinon": "^18.0.1",
     "terminate": "^2.8.0"
   }
 }
