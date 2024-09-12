@@ -3,7 +3,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as sinon from 'sinon';
-import * as capivaraRunnerExt from '../main/extension'
 
 suite('CapivaraRunner Extension Test Suite', () => {
 
@@ -20,7 +19,6 @@ suite('CapivaraRunner Extension Test Suite', () => {
     setup(() => {
         showInformationMessageSinon = sinon.stub(vscode.window, 'showInformationMessage');
         showErrorMessageSinon = sinon.stub(vscode.window, 'showErrorMessage');
-        //createOutputChannelStub = sinon.stub(vscode.window, 'createOutputChannel');
     });
 
     teardown(() => {
