@@ -70,7 +70,7 @@ describe('ServiceManager Tests', () => {
             });
 
             it('Then should call method exists with correct path', () => {
-                expect(spyOnFsExists).toHaveBeenCalledWith('\\path\\to\\config\\capivara.config.json');
+                expect(spyOnFsExists).toHaveBeenCalledWith(path.join(path.sep,"path","to","config","capivara.config.json"));
             });
 
             it('Then should call method showErrorMessage with correct message', () => {
