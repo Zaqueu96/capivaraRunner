@@ -79,18 +79,15 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
+    "compile": "tsc -p ./src/main",
+    "watch": "tsc -watch -p ./src/main",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src",
-    "test": "vscode-test",
-    "test-jest": "jest"
+    "test": "jest"
   },
   "devDependencies": {
     "@types/jest": "^29.5.12",
-    "@types/mocha": "^10.0.7",
     "@types/node": "20.x",
-    "@types/sinon": "^17.0.3",
     "@types/vscode": "^1.93.0",
     "@typescript-eslint/eslint-plugin": "^8.3.0",
     "@typescript-eslint/parser": "^8.3.0",
@@ -103,7 +100,6 @@
     "vscode-test": "^1.6.1"
   },
   "dependencies": {
-    "sinon": "^18.0.1",
     "terminate": "^2.8.0"
   }
 }
