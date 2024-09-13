@@ -3,6 +3,7 @@ import { ServiceConfig, ServiceManager } from '../main/ServiceManager';
 import * as fs from 'fs';
 import { start } from 'repl';
 import { Logger } from '../main/Logger';
+import * as path from 'path';
 
 
 const mockVscode = require('./__mocks__/vscode');
@@ -61,10 +62,6 @@ describe('ServiceManager Tests', () => {
 
     describe('And call load configuration ', () => {
 
-        beforeEach(() => {
-            const configPath = '/path/to/config';
-        });
-
         describe('And when file config not exists', () => {
             let spyOnFsExists: any;
             beforeEach(() => {
@@ -100,7 +97,7 @@ describe('ServiceManager Tests', () => {
 
         it('Then should call createTerminal with correct params', () => {
             expect(vscode.window.createTerminal).toHaveBeenCalledWith({
-                cwd: "C:\\\path\\to\\config\\mockDir",
+                cwd: expect.stringContaining(path.join("path","to","config","mockDir")),
                 name: service.name
             });
         });
