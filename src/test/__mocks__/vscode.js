@@ -1,5 +1,6 @@
 
 module.exports = {
+    
     ThemeIcon: jest.fn(),
     TreeItem: jest.fn(),
     TreeItemCollapsibleState: {
@@ -7,6 +8,7 @@ module.exports = {
     },
     OutputChannel: jest.fn(),
     window: {
+        registerTreeDataProvider: jest.fn(),
         createTerminal: jest.fn().mockReturnValue({
             sendText: jest.fn(),
             hide: jest.fn()

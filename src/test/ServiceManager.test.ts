@@ -17,8 +17,45 @@ describe('ServiceManager Tests', () => {
         workingDirectory: "./mockDir"
     };
 
+    const servicesResult = {
+        services: [
+            {
+                name: "System01",
+                workingDirectory: "./system01",
+                command: "npm run start",
+                dependsOn: ["Docker"]
+            },
+            {
+                name: "Docker",
+                workingDirectory: "./",
+                command: "docker-compose up",
+                dependsOn: ["System02"]
+            },
+            {
+                name: "System02",
+                workingDirectory: "./system02",
+                command: "npm run start",
+                dependsOn: []
+            },
+        ]
+    };
+
+    let mockHide = jest.fn();
+    let mockSendText = jest.fn();
+    let mockDispose = jest.fn();
     beforeEach(() => {
         logger = new Logger("");
+        jest.spyOn(vscode.window, "createTerminal").mockImplementation(
+            () => ({
+                dispose: mockDispose,
+                hide: mockHide,
+                sendText: mockSendText
+            }) as any
+        );
+
+        
+        jest.spyOn(fs, 'readFileSync').mockReturnValue(JSON.stringify(servicesResult));
+
         serviceManager = new ServiceManager();
     });
 
@@ -36,27 +73,16 @@ describe('ServiceManager Tests', () => {
             });
 
             it('Then should call method exists with correct path', () => {
-                expect(spyOnFsExists).toHaveBeenCalledWith('\\path\\to\\config\\capivara.config.json')
+                expect(spyOnFsExists).toHaveBeenCalledWith('\\path\\to\\config\\capivara.config.json');
             });
 
             it('Then should call method showErrorMessage with correct message', () => {
-                expect(vscode.window.showErrorMessage).toHaveBeenCalledWith('Config file (capivara.config.json) not found')
+                expect(vscode.window.showErrorMessage).toHaveBeenCalledWith('Config file (capivara.config.json) not found');
             });
         });
 
         describe('And file config exists', () => {
-            const servicesResult = {
-                services: [{
-                    name: "System01",
-                    workingDirectory: "./system01",
-                    command: "npm run start",
-                    dependsOn: []
-                }]
-            }
-
-            let servicesString: string = JSON.stringify(servicesResult);
             beforeEach(() => {
-                jest.spyOn(fs, 'readFileSync').mockReturnValue(servicesString);
                 jest.spyOn(fs, 'existsSync').mockReturnValue(true);
                 serviceManager.loadConfiguration();
             });
@@ -68,14 +94,8 @@ describe('ServiceManager Tests', () => {
     });
 
     describe('And call method startService', () => {
-
-        let mockHide = jest.fn();
-        let mockSendText = jest.fn();
         beforeEach(() => {
-            jest.spyOn(vscode.window, "createTerminal").mockImplementation(
-                () => ({ hide: mockHide, sendText: mockSendText }) as any
-            )
-                    serviceManager.startService(service);
+            serviceManager.startService(service);
         });
 
         it('Then should call createTerminal with correct params', () => {
@@ -88,13 +108,72 @@ describe('ServiceManager Tests', () => {
         it('Then should call showInformationMessage with correct message', () => {
             expect(vscode.window.showInformationMessage).toHaveBeenCalledWith(`Starting service: ${service.name}`);
         });
-        
+
         it('Then should if called method hide', () => {
             expect(mockHide).toHaveBeenCalled();
         });
 
         it('Then should call method sendText with correct service command', () => {
             expect(mockSendText).toHaveBeenCalledWith(service.command);
+        });
+    });
+
+    describe('And call method stopService', () => {
+        beforeEach(() => {
+            serviceManager.startService(service);
+
+            serviceManager.stopService(service);
+        });
+
+        it('Then should call showInformationMessage with correct message', () => {
+            expect(vscode.window.showInformationMessage).toHaveBeenCalledWith(`Stopping service: ${service.name}`);
+        });
+
+        it('Then should delete service on running process', () => {
+            expect(
+                serviceManager.getRunningProcess().has(service.name)
+            ).toBeFalsy();
+        });
+    });
+
+    describe('And call method startAllServices', () => {
+        beforeEach(() => {
+            jest.spyOn(fs, 'existsSync').mockReturnValue(true);
+            serviceManager.loadConfiguration();
+
+            serviceManager.startAllServices();
+        });
+
+        it('Then should call showInformationMessage with correct message', () => {
+            expect(vscode.window.showInformationMessage)
+                .toHaveBeenCalledWith('Starting all services...');
+        });
+
+        it('Then should sortService by depends on terminal execute', () => {
+            expect(
+                Array.from(serviceManager.getRunningProcess().keys())
+            ).toEqual(["System02","Docker", "System01"]);
+        });
+    });
+
+    describe('And call method stoptAllServices', () => {
+
+        beforeEach(() => {
+            jest.spyOn(fs, 'existsSync').mockReturnValue(true);
+            serviceManager.loadConfiguration();
+
+            serviceManager.stopAllServices();
+        });
+
+        it('Then should call showInformationMessage with correct message', () => {
+            expect(vscode.window.showInformationMessage)
+                .toHaveBeenCalledWith('Stopping all services...');
+        });
+
+        it('Then should returns empty array on running process', () => {
+            expect(
+                Array.from(serviceManager.getRunningProcess().keys())
+            ).toEqual([]);
         });
     });
 });

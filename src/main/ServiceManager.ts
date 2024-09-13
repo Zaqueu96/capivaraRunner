@@ -1,8 +1,6 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { ChildProcess, spawn } from 'child_process';
-import terminate from 'terminate';
 import { Logger } from './Logger';
 
 export interface ServiceConfig {
@@ -17,15 +15,19 @@ export class ServiceManager {
     private runningProcesses = new Map<string, any>();
     private logger = new Logger('CapivaraRunner Output');
 
-    constructor(){
+    constructor() {
         this.getServices = this.getServices.bind(this);
     }
 
-    public getServices():ServiceConfig[] {
+    public getServices(): ServiceConfig[] {
         return this.services;
     }
 
-    public isRunning(service:ServiceConfig):boolean {
+    public getRunningProcess(): Map<string, any> {
+        return this.runningProcesses;
+    }
+
+    public isRunning(service: ServiceConfig): boolean {
         return this.runningProcesses.has(service.name);
     }
 
@@ -58,25 +60,27 @@ export class ServiceManager {
         vscode.window.showInformationMessage('Stopping all services...');
         this.runningProcesses.forEach((process, name) => {
             const service = this.services.find(s => s.name === name);
-            if (service) this.terminateProcess(service);
+            if (service) {
+                this.terminateProcess(service);
+            }
         });
     }
 
     private capivaraRunnerCommand(service: ServiceConfig) {
-        
+
         this.logger.log(`starting service: ${service.name}`);
 
-        if(this.runningProcesses.has(service.name)){
+        if (this.runningProcesses.has(service.name)) {
             this.logger.log(`service: ${service.name} already on terminal`);
             return;
         }
-        
-       vscode.window.showInformationMessage(`Starting service: ${service.name}`);
-       this.executeCommandOnTerminals(service);
+
+        vscode.window.showInformationMessage(`Starting service: ${service.name}`);
+        this.executeCommandOnTerminals(service);
     }
 
     private executeCommandOnTerminals(service: ServiceConfig) {
-        const workingDirectory = path.resolve(vscode.workspace.rootPath || '', service.workingDirectory);    
+        const workingDirectory = path.resolve(vscode.workspace.rootPath || '', service.workingDirectory);
         const terminal = vscode.window.createTerminal({
             cwd: workingDirectory,
             name: service.name,
@@ -89,15 +93,8 @@ export class ServiceManager {
     private terminateProcess(service: ServiceConfig) {
         const process = this.runningProcesses.get(service.name);
         if (process) {
-            if (process.pid) {
-                terminate(process.pid, () => {
-                    this.logger.log(`[${service.name}] Terminated successfully.`);
-                    this.runningProcesses.delete(service.name);
-                });
-            } else {
-                process.dispose();
-                this.runningProcesses.delete(service.name);
-            }
+            process.dispose();
+            this.runningProcesses.delete(service.name);
         } else {
             vscode.window.showWarningMessage(`No running process found for service: ${service.name}`);
         }

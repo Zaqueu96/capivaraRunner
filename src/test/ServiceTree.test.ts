@@ -29,9 +29,9 @@ describe('ServiceTreeDataProvider Tests', () => {
 
     beforeEach(() => {
         spyOnIsRunning = jest.spyOn(serviceManager, 'isRunning')
-            .mockImplementation(() => false)
+            .mockImplementation(() => false);
         spyOnGetServices = jest.spyOn(serviceManager, 'getServices')
-            .mockImplementation(() => services)
+            .mockImplementation(() => services);
 
 
         serviceTreeDataProvider = new ServiceTreeDataProvider(serviceManager);
@@ -50,19 +50,19 @@ describe('ServiceTreeDataProvider Tests', () => {
             });
 
             it('Then should call method serviceManager.isRunning with correct service', () => {
-                expect(spyOnIsRunning).toHaveBeenCalledWith(services[0])
+                expect(spyOnIsRunning).toHaveBeenCalledWith(services[0]);
             });
 
             it('Then should result correct children', () => {
                 expect(resultTree[0])
-                    .toStrictEqual(new ServiceItem(services[0], false))
+                    .toStrictEqual(new ServiceItem(services[0], false));
             });
         });
 
         describe('And get with element', () => {
             let resultTree: ServiceItem[];
             beforeEach(async () => {
-                spyOnGetServices.mockClear()
+                spyOnGetServices.mockClear();
                 resultTree = await serviceTreeDataProvider.getChildren(true as any);
             });
 
@@ -71,7 +71,7 @@ describe('ServiceTreeDataProvider Tests', () => {
             });
 
             it('Then should returns empty array', () => {
-                expect(resultTree).toStrictEqual([])
+                expect(resultTree).toStrictEqual([]);
             });
         });
     });
@@ -84,7 +84,7 @@ describe('ServiceTreeDataProvider Tests', () => {
         });
 
         it('Then should returns correct treeItem ', () => {
-            expect(resultTreeItem).toStrictEqual(expectedServiceItem)
+            expect(resultTreeItem).toStrictEqual(expectedServiceItem);
         });
     });
 });
