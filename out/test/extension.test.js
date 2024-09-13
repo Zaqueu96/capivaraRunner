@@ -39,7 +39,6 @@ suite('CapivaraRunner Extension Test Suite', () => {
     setup(() => {
         showInformationMessageSinon = sinon.stub(vscode.window, 'showInformationMessage');
         showErrorMessageSinon = sinon.stub(vscode.window, 'showErrorMessage');
-        //createOutputChannelStub = sinon.stub(vscode.window, 'createOutputChannel');
     });
     teardown(() => {
         sinon.restore();

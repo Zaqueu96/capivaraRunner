@@ -1,14 +1,15 @@
 import * as vscode from 'vscode';
 import { ServiceManager } from './ServiceManager';
+import { ServiceItem } from './ServiceItem';
 
 export class ServiceTreeDataProvider implements vscode.TreeDataProvider<ServiceItem> {
     constructor(private serviceManager: ServiceManager) { }
 
-    getTreeItem(element: ServiceItem): vscode.TreeItem {
+    public getTreeItem(element: ServiceItem): vscode.TreeItem {
         return element;
     }
 
-    getChildren(element?: ServiceItem): Thenable<ServiceItem[]> {
+    public getChildren(element?: ServiceItem): Thenable<ServiceItem[]> {
         if (!element) {
             return Promise.resolve(
                 this.serviceManager.getServices().map(
@@ -20,14 +21,4 @@ export class ServiceTreeDataProvider implements vscode.TreeDataProvider<ServiceI
     }
 }
 
-class ServiceItem extends vscode.TreeItem {
-    constructor(public service: any, isRunning: boolean) {
-        super(service.name, vscode.TreeItemCollapsibleState.None);
-        this.iconPath = new vscode.ThemeIcon(isRunning ? 'debug-stop' : 'play');
-        this.command = {
-            title: `${isRunning ? 'Stop' : 'Start'} Service`,
-            command: isRunning ? 'extension.stopService' : 'extension.startService',
-            arguments: [service]
-        };
-    }
-}
+
