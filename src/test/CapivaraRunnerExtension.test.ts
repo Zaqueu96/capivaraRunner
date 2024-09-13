@@ -7,6 +7,7 @@ const ServiceManagerMock = ServiceManager as jest.MockedClass<typeof ServiceMana
 
 describe('CapivaraRunnerExtension Tests', () => {
     let context: vscode.ExtensionContext;
+    let serviceManagerMock: any;
 
     beforeEach(() => {
         context = {
@@ -18,14 +19,20 @@ describe('CapivaraRunnerExtension Tests', () => {
 
     describe('And call method activate', () => {
         let spyOnLoadConfiguration: any;
-        const serviceManagerMock = new ServiceManagerMock();
+        serviceManagerMock = new ServiceManager() as jest.Mocked<ServiceManager>;
+        serviceManagerMock.loadConfiguration = jest.fn();
+        serviceManagerMock.startService = jest.fn();
+        serviceManagerMock.stopService = jest.fn();
+        serviceManagerMock.startAllServices = jest.fn();
+        serviceManagerMock.stopAllServices = jest.fn();
 
-        beforeEach(() => {            
-            spyOnLoadConfiguration =  jest.spyOn(serviceManagerMock, 'loadConfiguration');
+        beforeEach(() => {
+            spyOnLoadConfiguration = jest.spyOn(serviceManagerMock, 'loadConfiguration');
 
             (ServiceManager as jest.MockedClass<typeof ServiceManager>).mockImplementation(() => serviceManagerMock);
 
             activate(context);
+
         });
 
         it('Then should load the configuration on activation', () => {
@@ -67,5 +74,38 @@ describe('CapivaraRunnerExtension Tests', () => {
             );
         });
 
+        describe('And validate command execution', () => {
+            let registeredCommands: any;
+
+            beforeAll(() => {
+                registeredCommands = (vscode.commands.registerCommand as jest.Mock).mock.calls;
+            });
+
+            it('Then should call "startService" when the "startService" command is executed', () => {
+                registeredCommands[0][1]();
+                expect(serviceManagerMock.startService).toHaveBeenCalled();
+            });
+
+            it('Then should call "stopService" when the "stopService" command is executed', () => {
+                registeredCommands[1][1]();
+                expect(serviceManagerMock.stopService).toHaveBeenCalled();
+            });
+
+            it('Then should call "startAllServices" when the "startAllServices" command is executed', () => {
+                registeredCommands[2][1]();
+                expect(serviceManagerMock.startAllServices).toHaveBeenCalled();
+            });
+
+            it('Then should call "stopAllServices" when the "stopAllServices" command is executed', () => {
+                registeredCommands[3][1]();
+                expect(serviceManagerMock.stopAllServices).toHaveBeenCalled();
+            });
+
+            it('Then should reload the configuration when the "refresh" command is executed', () => {
+                registeredCommands[4][1]();
+                expect(serviceManagerMock.loadConfiguration).toHaveBeenCalled();
+                expect(vscode.window.showInformationMessage).toHaveBeenCalledWith('Reloaded configuration!');
+            });
+        });
     });
 });

@@ -3,7 +3,7 @@ import { ServiceConfig } from '../main/ServiceManager';
 import { ServiceTreeDataProvider } from '../main/ServiceTree';
 import { Logger } from '../main/Logger';
 import { ServiceItem } from '../main/ServiceItem';
-import { EXTENSION_START_SERVICE, EXTENSION_STOP_SERVICE } from '../main/Constants'
+import { EXTENSION_START_SERVICE, EXTENSION_STOP_SERVICE } from '../main/Constants';
 
 
 describe('ServiceItem Tests', () => {
@@ -23,13 +23,6 @@ describe('ServiceItem Tests', () => {
         name: "mockService",
         workingDirectory: "./mockDir"
     };
-    let spyOnIsRunning: jest.SpyInstance<boolean, [service: ServiceConfig], any>;
-    let spyOnGetServices: jest.SpyInstance<ServiceConfig[], [], any>;
-
-    beforeEach(() => {
-
-        // serviceTreeDataProvider = new ServiceTreeDataProvider(serviceManager);
-    });
 
     describe('And create instance', () => {
 

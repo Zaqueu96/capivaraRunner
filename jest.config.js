@@ -14,6 +14,21 @@ module.exports = {
     setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
     moduleNameMapper: {
       "^vscode$": "<rootDir>/__mocks__/vscode.js"
-    }
+    },
+    collectCoverage: true,
+    collectCoverageFrom: [
+        'src/**/*.ts', 
+    ],
+    coverageDirectory: 'coverage', 
+    coverageReporters: ['json', 'lcov', 'text', 'clover'], 
+    coverageThreshold: {
+        global: {
+            branches: 80, 
+            functions: 80,
+            lines: 80,
+            statements: 80, 
+        },
+    },
+
   };
   
