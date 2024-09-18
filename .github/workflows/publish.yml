@@ -21,6 +21,8 @@ jobs:
     
     - name: Bump extension version
       run: |
+        git config --local user.name "GitHub Actions"
+        git config --local user.email "actions@github.com"
         npm version patch
 
     - name: Install dependencies
@@ -30,11 +32,9 @@ jobs:
       env:
         VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }} 
       run: vsce publish
-      
+
     - name: Commit and Push version bump
-      run: |
-        git config --local user.name "GitHub Actions"
-        git config --local user.email "actions@github.com"
+      run: |        
         git add package.json
         git commit -m "Bump version to $(cat package.json | grep version | sed 's/[^0-9.]//g')"
         git push origin HEAD
