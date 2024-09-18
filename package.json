@@ -2,7 +2,7 @@
   "name": "capivararunner",
   "displayName": "CapivaraRunner",
   "description": "CapivaraRunner is a VS Code extension that streamlines the execution of multiple commands, perfect for starting complex services or running several commands simultaneously without the need to open and manage multiple terminals",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "publisher": "zaqueupereirabrz",
   "engines": {
     "vscode": "^1.93.0"
