@@ -1,17 +1,24 @@
 {
   "name": "capivararunner",
   "displayName": "CapivaraRunner",
-  "description": "For start many services required ",
+  "description": "CapivaraRunner is a VS Code extension that streamlines the execution of multiple commands, perfect for starting complex services or running several commands simultaneously without the need to open and manage multiple terminals",
   "version": "0.0.1",
+  "publisher": "zaqueupereirabrz",
   "engines": {
     "vscode": "^1.93.0"
   },
+  "icon": "media/capivararunner_icon.png",
   "categories": [
     "Other"
   ],
   "activationEvents": [
     "onView:capivaraTreeViewActBar"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Zaqueu96/capivaraRunner"
+  },
+  "homepage": "https://github.com/Zaqueu96/capivaraRunner",
   "main": "./out/extension.js",
   "contributes": {
     "viewsContainers": {
@@ -19,7 +26,7 @@
         {
           "id": "capivaraTreeView",
           "title": "Capivara Runner",
-          "icon": "media/capivara_white.svg"
+          "icon": "media/capivara_dev.png"
         }
       ]
     },
