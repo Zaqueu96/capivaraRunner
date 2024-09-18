@@ -11,6 +11,14 @@ export class ServiceTreeDataProvider implements vscode.TreeDataProvider<ServiceI
 
     public getChildren(element?: ServiceItem): Thenable<ServiceItem[]> {
         if (!element) {
+
+            if (this.serviceManager.getMessageDefault() !== "") {
+                const treeItem = new vscode.TreeItem(
+                    this.serviceManager.getMessageDefault()
+                );
+                return Promise.resolve([treeItem as any]);
+            }
+
             return Promise.resolve(
                 this.serviceManager.getServices().map(
                     service => new ServiceItem(service, this.serviceManager.isRunning(service))

@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Logger } from './Logger';
+import { ServiceTreeDataProvider } from './ServiceTree';
 
 export interface ServiceConfig {
     name: string;
@@ -10,15 +11,33 @@ export interface ServiceConfig {
     dependsOn: string[];
 }
 
+enum ConfigurationMessageEnum {
+    CONFIG_NOT_FOUND = "config_not_found",
+    CONFIG_LOAD_ERROR = "config_load_error",
+    CONFIG_LOAD_EMPTY = "config_load_empty",
+    CONFIG_LOAD_SUCCESS = "config_load_successd"
+}
 export class ServiceManager {
     private services: ServiceConfig[] = [];
     private runningProcesses = new Map<string, any>();
+    private configMessage: ConfigurationMessageEnum
+        = ConfigurationMessageEnum.CONFIG_LOAD_SUCCESS;
     private logger = new Logger('CapivaraRunner Output');
+
+    private messagesOnChildrenDefault = {
+        [ConfigurationMessageEnum.CONFIG_NOT_FOUND]: "Config file (capivara.config.json) not found.",
+        [ConfigurationMessageEnum.CONFIG_LOAD_ERROR]: "Error on load configuration. check logs.",
+        [ConfigurationMessageEnum.CONFIG_LOAD_EMPTY]: "No services found.",
+        [ConfigurationMessageEnum.CONFIG_LOAD_SUCCESS]: ""
+    };
 
     constructor() {
         this.getServices = this.getServices.bind(this);
     }
 
+    public getMessageDefault(): string {
+        return this.messagesOnChildrenDefault[this.configMessage];
+    }
     public getServices(): ServiceConfig[] {
         return this.services;
     }
@@ -30,33 +49,68 @@ export class ServiceManager {
     public isRunning(service: ServiceConfig): boolean {
         return this.runningProcesses.has(service.name);
     }
+    private showConfigNotFound() {
+        vscode.window.showErrorMessage('Config file (capivara.config.json) not found');
+    }
+
+    private refreshTreeProvider() {
+        const treeDataProvider = new ServiceTreeDataProvider(this);
+        vscode.window.registerTreeDataProvider('capivaraTreeView', treeDataProvider);
+    }
 
     public loadConfiguration() {
         const configPath = path.join(vscode.workspace.rootPath || '', 'capivara.config.json');
         if (fs.existsSync(configPath)) {
             const configFile = fs.readFileSync(configPath, 'utf-8');
-            this.services = JSON.parse(configFile).services;
+            try {
+                const objectJsonParsed = JSON.parse(configFile);
+                if (objectJsonParsed.services) {
+                    this.services = objectJsonParsed.services;
+                    this.configMessage = ConfigurationMessageEnum.CONFIG_LOAD_SUCCESS;
+                } else {
+                    this.configMessage = ConfigurationMessageEnum.CONFIG_LOAD_EMPTY;
+                }
+
+            } catch (error) {
+                vscode.window.showErrorMessage("Error on load configuration. check logs");
+                this.logger.log(`error on loading configuration: ${error}`);
+                this.configMessage = ConfigurationMessageEnum.CONFIG_LOAD_ERROR;
+            } 
+
         } else {
-            vscode.window.showErrorMessage('Config file (capivara.config.json) not found');
+            this.configMessage = ConfigurationMessageEnum.CONFIG_NOT_FOUND;
+            this.showConfigNotFound();
         }
+
+        this.refreshTreeProvider();
+
     }
 
     public startService(service: ServiceConfig) {
         this.capivaraRunnerCommand(service);
+        this.refreshTreeProvider();
     }
 
     public stopService(service: ServiceConfig) {
         vscode.window.showInformationMessage(`Stopping service: ${service.name}`);
         this.terminateProcess(service);
+        this.refreshTreeProvider();
     }
 
     public startAllServices() {
-        this.logger.log("Starting all services...");
-        vscode.window.showInformationMessage('Starting all services...');
+        if (this.runningProcesses.size === this.services.length) {
+            return;
+        }
+        this.logger.log("Launching all services.");
+        vscode.window.showInformationMessage('Launching all services');
+
         this.getServicesByDependsOn().forEach(service => this.capivaraRunnerCommand(service));
+
+        this.refreshTreeProvider();
     }
 
     public stopAllServices() {
+        if (this.runningProcesses.size === 0) { return; }
         vscode.window.showInformationMessage('Stopping all services...');
         this.runningProcesses.forEach((process, name) => {
             const service = this.services.find(s => s.name === name);
@@ -64,6 +118,8 @@ export class ServiceManager {
                 this.terminateProcess(service);
             }
         });
+
+        this.refreshTreeProvider();
     }
 
     private capivaraRunnerCommand(service: ServiceConfig) {

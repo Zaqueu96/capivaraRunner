@@ -19,7 +19,7 @@
     "url": "https://github.com/Zaqueu96/capivaraRunner"
   },
   "homepage": "https://github.com/Zaqueu96/capivaraRunner",
-  "main": "./out/extension.js",
+  "main": "./out/main/CapivaraRunnerExtension.js",
   "contributes": {
     "viewsContainers": {
       "activitybar": [
