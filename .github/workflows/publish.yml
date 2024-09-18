@@ -34,6 +34,8 @@ jobs:
       run: vsce publish -p ${{ secrets.VSCE_TOKEN }}
 
     - name: Git push changes on repository
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         git add .         
         git push
