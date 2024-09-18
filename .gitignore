@@ -4,4 +4,4 @@ node_modules
 coverage/
 out/
 out
-*.vix
+*.vsix
