@@ -31,7 +31,7 @@ jobs:
     - name: Publish to Visual Studio Marketplace
       env:
         VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }} 
-      run: vsce publish
+      run: vsce publish -p ${{ secrets.VSCE_TOKEN }}
 
     - name: Commit and Push version bump
       run: |        
