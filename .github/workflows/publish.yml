@@ -1,0 +1,44 @@
+name: Manual Publish VSCode Extension
+
+on:
+  workflow_dispatch: 
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '16'  
+
+    - name: Install vsce (Visual Studio Code Extension Manager)
+      run: npm install -g vsce
+    
+    - name: Bump extension version
+      run: |
+        npm version patch
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Publish to Visual Studio Marketplace
+      env:
+        VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }} 
+      run: vsce publish
+      
+    - name: Commit and Push version bump
+      run: |
+        git config --local user.name "GitHub Actions"
+        git config --local user.email "actions@github.com"
+        git add package.json
+        git commit -m "Bump version to $(cat package.json | grep version | sed 's/[^0-9.]//g')"
+        git push origin HEAD
+
+    - name: Push new tag
+      run: |
+        git push origin --tags
