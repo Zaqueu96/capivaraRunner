@@ -11,6 +11,13 @@ export interface ServiceConfig {
     dependsOn: string[];
 }
 
+interface CapivaraConfig {
+    services: ServiceConfig[];
+}
+interface ProjectConfig {
+    [key: string]: CapivaraConfig
+}
+
 enum ConfigurationMessageEnum {
     CONFIG_NOT_FOUND = "config_not_found",
     CONFIG_LOAD_ERROR = "config_load_error",
@@ -25,7 +32,7 @@ export class ServiceManager {
     private logger = new Logger('CapivaraRunner Output');
 
     private messagesOnChildrenDefault = {
-        [ConfigurationMessageEnum.CONFIG_NOT_FOUND]: "Config file (capivara.config.json) not found.",
+        [ConfigurationMessageEnum.CONFIG_NOT_FOUND]: "Config file (capivara.config.json) or settings not found .",
         [ConfigurationMessageEnum.CONFIG_LOAD_ERROR]: "Error on load configuration. check logs.",
         [ConfigurationMessageEnum.CONFIG_LOAD_EMPTY]: "No services found.",
         [ConfigurationMessageEnum.CONFIG_LOAD_SUCCESS]: ""
@@ -50,7 +57,7 @@ export class ServiceManager {
         return this.runningProcesses.has(service.name);
     }
     private showConfigNotFound() {
-        vscode.window.showErrorMessage('Config file (capivara.config.json) not found');
+        vscode.window.showErrorMessage('Config file (capivara.config.json) or settings not found');
     }
 
     private refreshTreeProvider() {
@@ -75,11 +82,27 @@ export class ServiceManager {
                 vscode.window.showErrorMessage("Error on load configuration. check logs");
                 this.logger.log(`error on loading configuration: ${error}`);
                 this.configMessage = ConfigurationMessageEnum.CONFIG_LOAD_ERROR;
-            } 
+            }
 
         } else {
-            this.configMessage = ConfigurationMessageEnum.CONFIG_NOT_FOUND;
-            this.showConfigNotFound();
+            const projectFolderName = (vscode.workspace.name || 'default').toLocaleLowerCase();
+            const configuration = vscode.workspace.getConfiguration('capivaraRunner');
+            const projectsConfiguration = configuration.get('projects') as ProjectConfig;
+
+            if (projectsConfiguration
+                && Object.keys(projectsConfiguration).includes(projectFolderName)
+                && projectsConfiguration[projectFolderName].services?.length > 0
+            ) {
+
+                this.services = projectsConfiguration[projectFolderName].services;
+                this.configMessage = ConfigurationMessageEnum.CONFIG_LOAD_SUCCESS;
+            } else {
+                this.logger.log(`Configuration file not found at ${configPath}`);
+                this.configMessage = ConfigurationMessageEnum.CONFIG_NOT_FOUND;
+                this.showConfigNotFound();
+            }
+
+
         }
 
         this.refreshTreeProvider();
